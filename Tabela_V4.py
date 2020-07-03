@@ -4,34 +4,34 @@ from time import sleep
 
 operadores_de_cada_sentenca = {}  # Definir variável global para ser retomado pela tabela
 compostas_parciais = {}
-
-
+ 
+ 
 def caca_sentencas(proposicao_bruta):
     snt = []
     for elemento in proposicao_bruta:
         if elemento not in ['^', 'v', '->', '<->', '~', 'xv', '(', ')', '[', ']', '{', '}']:
             if elemento not in snt:
                 snt.append(elemento)
-
+ 
     return snt
-
-
+ 
+ 
 def calculo_frequencia_op_log(quantidade_sentencas, coluna):
     '''
     Calcula quantas vezes o 1 e 0 se repetirão para cada sentença. Exemplo: para 8 linhas, o 'p'
     assumirá 4 vezes '1' e 4 vezes '0'.
     '''
-
+ 
     coluna = coluna + 1
     frequencia = 2 ** (quantidade_sentencas - coluna)
     return frequencia
-
-
+ 
+ 
 def operadores_da_sentenca(coluna, quantidade_de_linhas, frequencia):
     '''
     Definirá os bools para a sentença específica. (ex: p receberá 1 1 0 0 ...)
     '''
-
+ 
     aux = 0
     operadores = []
     lista_operadores_da_sentenca = []
@@ -41,29 +41,30 @@ def operadores_da_sentenca(coluna, quantidade_de_linhas, frequencia):
         for i in range(frequencia):
             operadores.append(0)
         aux += 1
-
+ 
     return operadores
-
-
+ 
+ 
 def definir_operadores_logicos(sentencas):
     '''
      Definirá os valores bools (0, 1) que cada sentença (p, q, r...) irá assumir para cada linha.
      Monta os resultados obtidos da função anterior em um dicionário e o retorna.
     '''
-
+ 
     global operadores_de_cada_sentenca
     operadores_de_cada_sentenca = {}
     quantidade_sentecas = len(sentencas)
+    global quantidade_de_linhas
     quantidade_de_linhas = 2 ** (quantidade_sentecas)
     coluna = 0
     for sentenca in sentencas:  # (p, q, r ...)
         frequencia_da_sentenca = calculo_frequencia_op_log(quantidade_sentecas, coluna)  # A sequencia de 1 ou 0 dependendo da sentenca
         operadores_de_cada_sentenca[sentenca] = operadores_da_sentenca(coluna, quantidade_de_linhas, frequencia_da_sentenca)
         coluna += 1
-
+ 
     return operadores_de_cada_sentenca
-
-
+ 
+ 
 def montador_de_expressao(sentencas, numero_da_linha, proposicao_bruta):
     '''
     Substitui os símbolos (^, ~, ->, v...) pelos nomes das operações e as sentenças (p, q, r...) por 0 ou 1.
@@ -83,26 +84,26 @@ def montador_de_expressao(sentencas, numero_da_linha, proposicao_bruta):
         for i in index_sentenca:
             proposicao_reformada.remove(sentenca)
             proposicao_reformada.insert(i, valor_em_bool)
-
+ 
     for carac in proposicao_reformada:
         if carac == '^':
             index_carac = proposicao_reformada.index(carac)
             proposicao_reformada.remove(carac)
             proposicao_reformada.insert(index_carac, 'and')
-
+ 
         elif carac == 'v':
             index_carac = proposicao_reformada.index(carac)
             proposicao_reformada.remove(carac)
             proposicao_reformada.insert(index_carac, 'or')
-
+ 
         elif carac == '~':
             index_carac = proposicao_reformada.index(carac)
             proposicao_reformada.remove(carac)
             proposicao_reformada.insert(index_carac, 'not')
-
+ 
     return proposicao_reformada
-
-
+ 
+ 
 def prioridade(expressao):
     '''
     Determina o index das operações com prioridade, acha a expressão que será realizada e retorna o index por meio de uma
@@ -133,10 +134,10 @@ def prioridade(expressao):
             return lista_prioridade
             break
         aux += 1
-
+ 
     return lista_prioridade
-
-
+ 
+ 
 def resolve_expressao_aux(expre):
     '''
     Função auxiliar para a resolução das expressões. Ela que realiza as operações lógicas e retorna o valor final da
@@ -210,8 +211,8 @@ def resolve_expressao_aux(expre):
                 expre.pop(index + 1)  # Remove o bool antigo
                 expre.insert(index + 1, contrario)  # Insere o bool contrário
                 expre.pop(index)  # Remove o 'not' operado
-
-
+ 
+ 
 def resolve_expressao(sentencas, proposicao_bruta):
     '''
     Função que resolve as operações lógicas por meio de organizar as expressões com prioridade, pois, a partir dos index
@@ -223,7 +224,7 @@ def resolve_expressao(sentencas, proposicao_bruta):
     expressoes = []  # O numero da linha corresponde ao index de cada elemento dessa lista, iniciando por 0.
     for i in range(2**len(sentencas)):
         expressoes.append(montador_de_expressao(sentencas, i, proposicao_bruta))
-
+ 
     aux = 0
     for expressao in expressoes:
         prop_bruta_aux = proposicao_bruta[:]
@@ -252,28 +253,28 @@ def resolve_expressao(sentencas, proposicao_bruta):
                     except:
                         compostas_parciais[expressao_prioritaria_bruta] = []
                         compostas_parciais[expressao_prioritaria_bruta].append(resultado)
-
+ 
             else:
                 resultado = resolve_expressao_aux(expressao)
                 end = True
                 resultado_de_cada_linha[aux] = resultado
         aux += 1
-
+ 
     return resultado_de_cada_linha
-
-
+ 
+ 
 # Agora é montar a tabela
 pt = PrettyTable()
-
-
+ 
+ 
 def lista_to_string(lista):  # Transforma uma lista em string para ser escrita na tabela.
     string = ''
     for elemento in lista:
         string += str(elemento)
-
+ 
     return string
-
-
+ 
+ 
 def montador_de_tabela(sentencas, proposicao_bruta, resultados):
     '''
     Monta a tabela associando os resultados finais das expressões com sua respectiva linha da tabela. Substitui os 0 e 1
@@ -286,8 +287,8 @@ def montador_de_tabela(sentencas, proposicao_bruta, resultados):
     sentencas.append(lista_to_string(proposicao_bruta))
     colunas = sentencas
     pt.field_names = colunas
-    qtd_de_linhas = len(operadores_de_cada_sentenca['p'])
-    for linha in range(qtd_de_linhas):
+    quantidade_de_linhas
+    for linha in range(quantidade_de_linhas):
         line = []
         result = resultados[linha]
         for sentenca in sentencas1:
@@ -308,8 +309,8 @@ def montador_de_tabela(sentencas, proposicao_bruta, resultados):
     print(pt)
     print('')
     print('*"Res" significa resultado da operação anterior.')
-
-
+ 
+ 
 def main():  # Chamada principal
     print("Tabela Verdade!")
     print("Por Alex Victor Silva")
@@ -321,7 +322,7 @@ def main():  # Chamada principal
     sentencas = caca_sentencas(proposicao_bruta)
     resultados = resolve_expressao(sentencas, proposicao_bruta)  # Chama as funções secundárias
     montador_de_tabela(sentencas, proposicao_bruta, resultados)
-
-
+ 
+ 
 if __name__ == '__main__':
     main()
